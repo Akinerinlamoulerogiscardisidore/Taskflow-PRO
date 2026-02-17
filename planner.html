@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskflow Pro — Planificateur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+
+</head>
+<body>
+
+<!-- ══════════════════════════════ HEADER ══════════════════════════════ -->
+<header>
+    <div class="header-inner">
+        <div class="logo">
+            <div class="logo-gem">✦</div>
+            <div class="logo-name">Taskflow<span>.</span></div>
+        </div>
+        <nav>
+            <button class="nav-btn active" onclick="switchView('config')" id="nav-config">⚙️ Configuration</button>
+            <button class="nav-btn" onclick="switchView('realtime')" id="nav-realtime">📊 Temps Réel</button>
+            <button class="nav-btn" onclick="switchView('reports')" id="nav-reports">📋 Rapports</button>
+        </nav>
+        <button class="theme-btn" onclick="toggleTheme()" title="Changer de thème" id="themeBtn">🌙</button>
+    </div>
+</header>
+
+<!-- Week bar (config only) -->
+<div class="week-bar" id="weekBar">
+    <div class="week-bar-inner">
+        <button class="week-btn" onclick="changeWeek(-1)">← Précédente</button>
+        <div class="week-label" id="weekLabel">—</div>
+        <button class="week-btn" onclick="changeWeek(1)">Suivante →</button>
+    </div>
+</div>
+
+<!-- Clock bar (realtime only) -->
+<div class="clock-bar" id="clockBar" style="display:none">
+    <div class="clock-bar-inner">
+        <div class="clock-time" id="liveTime">00:00:00</div>
+        <div class="clock-date">
+            <div class="clock-date-badge">
+                <div class="day-num" id="clockDay">—</div>
+                <div class="month-abbr" id="clockMonth">—</div>
+            </div>
+            <div class="clock-date-info">
+                <h2 id="clockDayName">—</h2>
+                <p id="clockFullDate">—</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════ VIEW : CONFIG ══════════ -->
+<div class="view active" id="view-config">
+    <div class="container">
+        <div class="days-grid" id="daysGridConfig"></div>
+    </div>
+</div>
+
+<!-- ══════════ VIEW : REALTIME ══════════ -->
+<div class="view" id="view-realtime">
+    <div class="container">
+        <!-- Current task alert -->
+        <div class="current-task-alert" id="currentTaskAlert">
+            <div class="cta-icon">🎯</div>
+            <div>
+                <div class="cta-label">Tâche en cours maintenant</div>
+                <div class="cta-text" id="ctaText">—</div>
+                <div class="cta-time" id="ctaTime">—</div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard-grid" style="margin-top:20px">
+            <!-- Progress rings -->
+            <div class="card">
+                <div class="card-title"><span class="card-title-icon">📊</span> Vue d'ensemble</div>
+                <div class="rings-row">
+                    <div class="ring-wrap">
+                        <svg width="120" height="120" class="ring-svg">
+                            <defs>
+                                <linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#c9a227"/>
+                                    <stop offset="100%" style="stop-color:#e8c050"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="ring-bg" cx="60" cy="60" r="50"/>
+                            <circle class="ring-fill" cx="60" cy="60" r="50"
+                                id="ringWeek" stroke="url(#rg1)"
+                                stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
+                        </svg>
+                        <div id="ringWeekPct" style="margin-top:-88px;text-align:center;font-size:22px;font-weight:800;color:var(--gold-l);margin-bottom:64px">0%</div>
+                        <div class="ring-label">Hebdomadaire</div>
+                    </div>
+                    <div class="ring-wrap">
+                        <svg width="120" height="120" class="ring-svg">
+                            <defs>
+                                <linearGradient id="rg2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#a07010"/>
+                                    <stop offset="100%" style="stop-color:#c9a227"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="ring-bg" cx="60" cy="60" r="50"/>
+                            <circle class="ring-fill" cx="60" cy="60" r="50"
+                                id="ringToday" stroke="url(#rg2)"
+                                stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
+                        </svg>
+                        <div id="ringTodayPct" style="margin-top:-88px;text-align:center;font-size:22px;font-weight:800;color:var(--gold);margin-bottom:64px">0%</div>
+                        <div class="ring-label">Aujourd'hui</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quick stats -->
+            <div class="card">
+                <div class="card-title"><span class="card-title-icon">⚡</span> Statistiques</div>
+                <div class="stat-row">
+                    <span class="stat-row-label">Total tâches</span>
+                    <span class="stat-badge" id="statTotal">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-row-label">Complétées</span>
+                    <span class="stat-badge green" id="statDone">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-row-label">En cours</span>
+                    <span class="stat-badge orange" id="statActive">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-row-label">À venir</span>
+                    <span class="stat-badge red" id="statUpcoming">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card" style="margin-bottom:20px">
+            <div class="card-title"><span class="card-title-icon">⏰</span> Chronologie du jour</div>
+            <div class="timeline-hours" id="tlHours"></div>
+            <div class="timeline-track" id="tlTrack">
+                <div class="tl-marker" id="tlMarker"></div>
+            </div>
+        </div>
+
+        <!-- Week days -->
+        <div class="section-title">Planning de la semaine</div>
+        <div class="days-grid" id="daysGridRealtime"></div>
+    </div>
+</div>
+
+<!-- ══════════ VIEW : REPORTS ══════════ -->
+<div class="view" id="view-reports">
+    <div class="container">
+        <div class="period-tabs">
+            <button class="period-tab active" onclick="setPeriod('day')" id="ptDay">📅 Journée</button>
+            <button class="period-tab" onclick="setPeriod('month')" id="ptMonth">📆 Mois</button>
+            <button class="period-tab" onclick="setPeriod('year')" id="ptYear">🗓 Année</button>
+        </div>
+
+        <div class="report-period-label">
+            <h2 id="rptTitle">Rapport du jour</h2>
+            <p id="rptSubtitle">—</p>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi-card" style="border-color:var(--gold)">
+                <div class="kpi-icon">🏆</div>
+                <div class="kpi-value" id="kpiDone">0</div>
+                <div class="kpi-label">Tâches accomplies</div>
+            </div>
+            <div class="kpi-card" style="border-color:var(--blue)">
+                <div class="kpi-icon">📋</div>
+                <div class="kpi-value" id="kpiTotal">0</div>
+                <div class="kpi-label">Tâches créées</div>
+            </div>
+            <div class="kpi-card" style="border-color:var(--orange)">
+                <div class="kpi-icon">⏳</div>
+                <div class="kpi-value" id="kpiPending">0</div>
+                <div class="kpi-label">En attente</div>
+            </div>
+            <div class="kpi-card" style="border-color:var(--green)">
+                <div class="kpi-icon">⭐</div>
+                <div class="kpi-value" id="kpiRate">0%</div>
+                <div class="kpi-label">Taux de complétion</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-row">
+            <div class="card">
+                <div class="card-title" style="font-size:16px"><span class="card-title-icon">📌</span> Par catégorie</div>
+                <div id="catChart"><div class="empty-report"><div class="e-icon">📊</div>Aucune donnée</div></div>
+            </div>
+            <div class="card">
+                <div class="card-title" style="font-size:16px"><span class="card-title-icon">🚦</span> Par priorité</div>
+                <div id="priChart"><div class="empty-report"><div class="e-icon">📊</div>Aucune donnée</div></div>
+            </div>
+        </div>
+
+        <!-- Done tasks list -->
+        <div class="card" style="margin-bottom:16px">
+            <div class="card-title"><span class="card-title-icon" style="color:var(--gold)">✅</span> Tâches accomplies</div>
+            <div id="rptDoneList"><div class="empty-report"><div class="e-icon">🏆</div>Aucune tâche accomplie sur cette période.</div></div>
+        </div>
+
+        <!-- Pending tasks list -->
+        <div class="card" id="rptPendingCard" style="display:none">
+            <div class="card-title"><span class="card-title-icon" style="color:var(--orange)">⏳</span> Tâches en attente</div>
+            <div id="rptPendingList"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
